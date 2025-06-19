@@ -35,7 +35,7 @@ def init(
         json.dump(config, f, indent=2)
     console.print(f"Config saved to {CONFIG_PATH}")
 
-from . import user, group, role, application, user_group, user_role
+from . import user, group, role, application, user_group, user_role, provider
 
 if __name__ == "__main__":
     app()

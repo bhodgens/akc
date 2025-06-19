@@ -69,3 +69,10 @@ akc init --url <your-authentik-url> --token <your-api-token>
 
 *   `add <user-id> <role-id>`
 *   `remove <user-id> <role-id>`
+
+### Provider Management (`akc provider`)
+
+*   `create-proxy <name> <authorization-flow> <external-host>`
+*   `list [--output <table|json>]`
+*   `update <provider-id> --name <name>`
+*   `delete <provider-id>`
