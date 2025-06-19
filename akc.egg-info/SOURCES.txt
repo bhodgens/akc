@@ -1,0 +1,9 @@
+LICENSE
+README.md
+setup.py
+akc.egg-info/PKG-INFO
+akc.egg-info/SOURCES.txt
+akc.egg-info/dependency_links.txt
+akc.egg-info/entry_points.txt
+akc.egg-info/requires.txt
+akc.egg-info/top_level.txt
