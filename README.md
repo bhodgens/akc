@@ -60,6 +60,7 @@ akc init --url <your-authentik-url> --token <your-api-token>
 *   `list [--output <table|json>]`
 *   `update <user-id> [--username <username>] [--email <email>] [--first-name <first-name>] [--last-name <last-name>] [--is-active/--not-active] [--is-superuser/--not-superuser]`
 *   `delete <user-id>`
+*   `set-password <user-id> <password>`
 
 ### Group Management (`akc group`)
 
@@ -81,6 +82,8 @@ akc init --url <your-authentik-url> --token <your-api-token>
 *   `list [--output <table|json>]`
 *   `update <app-id> [--name <name>] [--slug <slug>] [--type <type>]`
 *   `delete <app-id>`
+*   `assign-provider <app-id> <provider-id>`
+*   `bind-flow <app-id> <flow-slug> [--flow-type <type>]`
 
 ### User-Group Management (`akc user-group`)
 
@@ -94,6 +97,7 @@ akc init --url <your-authentik-url> --token <your-api-token>
 
 ### Provider Management (`akc provider`)
 
+*   `create-oauth2 <name> <authorization_flow_slug> [--client-type <type>] [--redirect-uris <uris>]`
 *   `create-proxy <name> <authorization-flow> <external-host>`
 *   `list [--output <table|json>]`
 *   `update <provider-id> --name <name>`
@@ -130,12 +134,24 @@ akc init --url <your-authentik-url> --token <your-api-token>
 *   `list [--output <table|json>]`
 *   `get <uuid>`
 *   `delete <uuid>`
+*   `bind-to-app <policy_uuid> <app_uuid> <order>`
 
 ### Stage Management (`akc stage`)
 
 *   `list [--output <table|json>]`
 *   `get <uuid>`
 *   `delete <uuid>`
+
+### Flow Management (`akc flow`)
+
+*   `list [--output <table|json>]`
+*   `get <flow_uuid>`
+*   `delete <flow_uuid>`
+*   `export <flow_slug> [--output-file <path>]`
+*   `import <file>`
+*   `create <name> <slug> <title>`
+*   `update <flow_uuid> [--name <name>] [--slug <slug>] [--title <title>]`
+*   `bind-stage <flow_slug> <stage_uuid> <order>`
 
 ### Source Management (`akc source`)
 
