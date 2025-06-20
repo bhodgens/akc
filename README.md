@@ -2,6 +2,8 @@
 
 A command-line interface for managing Authentik resources.
 
+This project is offered as-is and hasn't been fully tested, but works for my needs. 
+
 ## Building the Project
 
 1.  **Create a virtual environment:**
