@@ -2,24 +2,43 @@
 
 A command-line interface for managing Authentik resources.
 
-## Building the Project
+## Getting Started
 
-1.  **Create a virtual environment:**
+### Prerequisites
+
+- Python 3.10+
+
+### Installation
+
+1.  **Clone the repository:**
 
     ```bash
-    python3 -m venv .venv
+    git clone https://github.com/user/akc.git
+    cd akc
     ```
 
-2.  **Activate the virtual environment:**
+2.  **Create a virtual environment:**
+
+    ```bash
+    make venv
+    ```
+
+3.  **Activate the virtual environment:**
 
     ```bash
     source .venv/bin/activate
     ```
 
-3.  **Install the project in editable mode:**
+4.  **Install dependencies:**
 
     ```bash
-    pip install -e .
+    make deps
+    ```
+
+5.  **Install the project in editable mode:**
+
+    ```bash
+    make install
     ```
 
 ## Initialization
