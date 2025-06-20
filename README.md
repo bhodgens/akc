@@ -3,6 +3,9 @@
 A command-line interface for managing Authentik resources.
 
 ## Getting Started
+This project is offered as-is and hasn't been fully tested, but works for my needs. 
+
+## Building the Project
 
 ### Prerequisites
 
