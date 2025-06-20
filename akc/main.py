@@ -6,7 +6,7 @@ from authentik_client.api_client import ApiClient as Client
 import typer
 from rich.console import Console
 
-app = typer.Typer()
+app = typer.Typer(add_completion=True)
 console = Console()
 
 CONFIG_PATH = os.path.expanduser("~/.akc_config.json")
@@ -35,7 +35,14 @@ def init(
         json.dump(config, f, indent=2)
     console.print(f"Config saved to {CONFIG_PATH}")
 
-from . import user, group, role, application, user_group, user_role, provider
+from . import user, group, role, application, user_group, user_role, provider, flow, core, outpost, event, propertymapping, policy, stage, source
 
 if __name__ == "__main__":
+    app.add_typer(core.app, name="core")
+    app.add_typer(outpost.outpost_app, name="outpost")
+    app.add_typer(event.event_app, name="event")
+    app.add_typer(propertymapping.propertymapping_app, name="propertymapping")
+    app.add_typer(policy.policy_app, name="policy")
+    app.add_typer(stage.stage_app, name="stage")
+    app.add_typer(source.source_app, name="source")
     app()

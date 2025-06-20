@@ -1,3 +1,4 @@
 authentik-client
 typer
 rich
+PyYAML

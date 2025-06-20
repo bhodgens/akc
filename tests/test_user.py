@@ -2,21 +2,20 @@ import unittest
 from unittest.mock import patch, MagicMock
 from typer.testing import CliRunner
 from akc.main import app
+from rich.console import Console
+from authentik_client.models.user import User
+from authentik_client.models.paginated_user_list import PaginatedUserList
+from authentik_client.models.patched_user_request import PatchedUserRequest
 
 class TestUserCommands(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
+        app.console = Console(force_terminal=False)
 
-    @patch("akc.user.User")
-    @patch("akc.user.console")
-    @patch("akc.user.get_client")
-    def test_create_user(self, mock_get_client, mock_console, mock_user_model):
-        mock_client = MagicMock()
-        mock_get_client.return_value = mock_client
-
-        mock_user = MagicMock()
-        mock_user.username = "testuser"
-        mock_client.users.create.return_value = mock_user
+    @patch("akc.user.UsersApi")
+    def test_create_user(self, MockUsersApi):
+        mock_api = MockUsersApi.return_value
+        mock_api.users_create.return_value = User(username="testuser")
 
         result = self.runner.invoke(
             app,
@@ -24,66 +23,47 @@ class TestUserCommands(unittest.TestCase):
         )
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called_with("[bold green]User 'testuser' created successfully.[/bold green]")
+        self.assertIn("User 'testuser' created successfully.", result.stdout)
 
-    @patch("akc.user.console")
-    @patch("akc.user.get_client")
-    def test_list_users(self, mock_get_client, mock_console):
-        mock_client = MagicMock()
-        mock_get_client.return_value = mock_client
-
-        user1 = MagicMock()
-        user1.id = 1
-        user1.username = "user1"
-        user1.email = "user1@test.com"
-        user1.is_active = True
-        user1.is_superuser = False
-
-        user2 = MagicMock()
-        user2.id = 2
-        user2.username = "user2"
-        user2.email = "user2@test.com"
-        user2.is_active = False
-        user2.is_superuser = True
-
-        mock_client.users.list.return_value = [user1, user2]
+    @patch("akc.user.UsersApi")
+    def test_list_users(self, MockUsersApi):
+        mock_api = MockUsersApi.return_value
+        user1 = User(pk="user1-pk", username="user1", email="user1@test.com", is_active=True, is_superuser=False)
+        user2 = User(pk="user2-pk", username="user2", email="user2@test.com", is_active=False, is_superuser=True)
+        mock_api.users_list.return_value = PaginatedUserList(results=[user1, user2])
 
         result = self.runner.invoke(app, ["user", "list"])
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called()
+        self.assertIn("user1-pk", result.stdout)
+        self.assertIn("user2-pk", result.stdout)
 
-    @patch("akc.user.console")
-    @patch("akc.user.get_client")
-    def test_update_user(self, mock_get_client, mock_console):
-        mock_client = MagicMock()
-        mock_get_client.return_value = mock_client
-
-        retrieved_user = MagicMock()
-        mock_client.users.retrieve.return_value = retrieved_user
-
-        updated_user = MagicMock()
-        updated_user.username = "newname"
-        updated_user.id = 1
-        mock_client.users.update.return_value = updated_user
+    @patch("akc.user.UsersApi")
+    def test_update_user(self, MockUsersApi):
+        mock_api = MockUsersApi.return_value
+        updated_user = User(pk="user-pk", username="newname")
+        mock_api.users_partial_update.return_value = updated_user
 
         result = self.runner.invoke(
-            app, ["user", "update", "1", "--username", "newname"]
+            app, ["user", "update", "user-pk", "--username", "newname"]
         )
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called_with("[bold green]User 'newname' (ID: 1) updated successfully.[/bold green]")
+        mock_api.users_partial_update.assert_called_with(
+            user_pk="user-pk",
+            patched_user_request=PatchedUserRequest(username="newname")
+        )
+        self.assertIn("User 'newname' (ID: user-pk) updated successfully.", result.stdout)
 
-    @patch("akc.user.console")
-    @patch("akc.user.get_client")
-    def test_delete_user(self, mock_get_client, mock_console):
-        mock_client = MagicMock()
-        mock_get_client.return_value = mock_client
+    @patch("akc.user.UsersApi")
+    def test_delete_user(self, MockUsersApi):
+        mock_api = MockUsersApi.return_value
 
-        result = self.runner.invoke(app, ["user", "delete", "1"])
+        result = self.runner.invoke(app, ["user", "delete", "user-pk"])
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called_with("[bold green]User with ID 1 deleted successfully.[/bold green]")
+        mock_api.users_destroy.assert_called_with(user_pk="user-pk")
+        self.assertIn("User with ID user-pk deleted successfully.", result.stdout)
 
 if __name__ == "__main__":
     unittest.main()

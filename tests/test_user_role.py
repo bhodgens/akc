@@ -2,56 +2,55 @@ import unittest
 from unittest.mock import patch, MagicMock
 from typer.testing import CliRunner
 from akc.main import app
+from rich.console import Console
+from authentik_client.models.user import User
+from authentik_client.models.role import Role
+from authentik_client.models.patched_user_request import PatchedUserRequest
 
 class TestUserRoleCommands(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
+        app.console = Console(force_terminal=False)
 
-    @patch("akc.user_role.PatchedUserRequest")
-    @patch("akc.user_role.console")
     @patch("akc.user_role.get_client")
-    def test_add_user_to_role(self, mock_get_client, mock_console, mock_patched_user_request):
+    def test_add_user_to_role(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
-        mock_user = MagicMock()
-        mock_user.username = "testuser"
-        mock_user.roles = []
+        mock_user = User(pk="user-pk", username="testuser", roles=[])
         mock_client.users.retrieve.return_value = mock_user
 
-        mock_role = MagicMock()
-        mock_role.name = "testrole"
-        mock_role.pk = "test-role-pk"
+        mock_role = Role(pk="role-pk", name="testrole")
         mock_client.roles.retrieve.return_value = mock_role
 
-        result = self.runner.invoke(app, ["user-role", "add", "1", "1"])
+        result = self.runner.invoke(app, ["user-role", "add", "user-pk", "role-pk"])
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called_with("[bold green]Role 'testrole' added to user 'testuser' successfully.[/bold green]")
-        mock_patched_user_request.assert_called_with(roles=["test-role-pk"])
+        mock_client.users.partial_update.assert_called_with(
+            "user-pk",
+            patched_user_request=PatchedUserRequest(roles=["role-pk"])
+        )
+        self.assertIn("Role 'testrole' added to user 'testuser' successfully.", result.stdout)
 
-    @patch("akc.user_role.PatchedUserRequest")
-    @patch("akc.user_role.console")
     @patch("akc.user_role.get_client")
-    def test_remove_user_from_role(self, mock_get_client, mock_console, mock_patched_user_request):
+    def test_remove_user_from_role(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
 
-        mock_user = MagicMock()
-        mock_user.username = "testuser"
-        mock_user.roles = ["test-role-pk"]
+        mock_user = User(pk="user-pk", username="testuser", roles=["role-pk"])
         mock_client.users.retrieve.return_value = mock_user
 
-        mock_role = MagicMock()
-        mock_role.name = "testrole"
-        mock_role.pk = "test-role-pk"
+        mock_role = Role(pk="role-pk", name="testrole")
         mock_client.roles.retrieve.return_value = mock_role
 
-        result = self.runner.invoke(app, ["user-role", "remove", "1", "1"])
+        result = self.runner.invoke(app, ["user-role", "remove", "user-pk", "role-pk"])
 
         self.assertEqual(result.exit_code, 0)
-        mock_console.print.assert_called_with("[bold green]Role 'testrole' removed from user 'testuser' successfully.[/bold green]")
-        mock_patched_user_request.assert_called_with(roles=[])
+        mock_client.users.partial_update.assert_called_with(
+            "user-pk",
+            patched_user_request=PatchedUserRequest(roles=[])
+        )
+        self.assertIn("Role 'testrole' removed from user 'testuser' successfully.", result.stdout)
 
 if __name__ == "__main__":
     unittest.main()

@@ -76,3 +76,47 @@ akc init --url <your-authentik-url> --token <your-api-token>
 *   `list [--output <table|json>]`
 *   `update <provider-id> --name <name>`
 *   `delete <provider-id>`
+
+### Core Management (`akc core`)
+
+*   `get-version`
+*   `list-tenants [--output <table|json>]`
+*   `create-tenant <schema-name> [--name <name>] [--domain <domain>]`
+*   `get-tenant <tenant-uuid>`
+*   `delete-tenant <tenant-uuid>`
+
+### Outpost Management (`akc outpost`)
+
+*   `list [--output <table|json>]`
+*   `get <uuid>`
+*   `delete <uuid>`
+*   `health <uuid>`
+
+### Event Management (`akc event`)
+
+*   `list [--output <table|json>]`
+*   `get <uuid>`
+
+### Property Mapping Management (`akc propertymapping`)
+
+*   `list [--output <table|json>]`
+*   `get <uuid>`
+*   `delete <uuid>`
+
+### Policy Management (`akc policy`)
+
+*   `list [--output <table|json>]`
+*   `get <uuid>`
+*   `delete <uuid>`
+
+### Stage Management (`akc stage`)
+
+*   `list [--output <table|json>]`
+*   `get <uuid>`
+*   `delete <uuid>`
+
+### Source Management (`akc source`)
+
+*   `list [--output <table|json>]`
+*   `get <slug>`
+*   `delete <slug>`

@@ -1,0 +1,5 @@
+authentik-client
+typer[all]
+rich
+PyYAML
+ruff
