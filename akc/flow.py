@@ -10,6 +10,7 @@ from authentik_client.exceptions import ApiException
 from authentik_client.models.flow_request import FlowRequest
 from authentik_client.models.flow_set_request import FlowSetRequest
 from authentik_client.models.patched_flow_request import PatchedFlowRequest
+from authentik_client.models import FlowStageBindingRequest
 
 from .main import get_client, app
 
@@ -69,6 +70,7 @@ def delete_flow(flow_uuid: str = typer.Argument(..., help="The UUID of the flow 
         console.print(f"[bold green]Flow '{flow_uuid}' deleted successfully.[/bold green]")
     except ApiException as e:
         console.print(f"[bold red]Error deleting flow: {e.body}[/bold red]")
+
 
 @flow_app.command("export")
 def export_flow(
@@ -159,5 +161,48 @@ def update_flow(
         console.print(f"[bold green]Flow '{flow.name}' updated successfully.[/bold green]")
     except ApiException as e:
         console.print(f"[bold red]Error updating flow: {e.body}[/bold red]")
+
+@flow_app.command("bind-stage")
+def bind_stage(
+    flow_slug: str = typer.Argument(..., help="The slug of the flow."),
+    stage_uuid: str = typer.Argument(..., help="The UUID of the stage to bind."),
+    order: int = typer.Argument(..., help="The order of the stage in the flow."),
+):
+    """Bind a stage to a flow."""
+    client = get_client()
+    flows_api = api.FlowsApi(client)
+    stages_api = api.StagesApi(client)
+    try:
+        # Get flow to retrieve its PK
+        flows = flows_api.flows_instances_list(slug=flow_slug)
+        if not flows.results:
+            console.print(f"[bold red]Flow with slug '{flow_slug}' not found.[/bold red]")
+            raise typer.Exit(1)
+        flow_pk = flows.results[0].pk
+
+        # Get stage to retrieve its PK
+        stage = stages_api.stages_all_retrieve(stage_uuid=stage_uuid)
+
+        binding_request = FlowStageBindingRequest(
+            target=flow_pk,
+            stage=stage.pk,
+            order=order,
+        )
+
+        # Assumes the client has this method for binding a stage
+        flows_api.flows_instances_add_stage_create(
+            flow_pk=flow_pk, flow_stage_binding_request=binding_request
+        )
+
+        console.print(
+            f"[bold green]Stage '{stage.name}' bound to flow '{flows.results[0].name}' successfully.[/bold green]"
+        )
+    except ApiException as e:
+        console.print(f"[bold red]Error binding stage: {e.body}[/bold red]")
+    except AttributeError:
+        console.print(
+            "[bold red]The version of authentik_client appears to be missing functionality for binding stages to flows.[/bold red]"
+        )
+
 
 app.add_typer(flow_app, name="flow")

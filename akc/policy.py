@@ -6,6 +6,7 @@ from rich.table import Table
 
 from authentik_client import api
 from authentik_client.exceptions import ApiException
+from authentik_client.models import PolicyBindingRequest
 
 from .main import get_client, app
 
@@ -76,5 +77,29 @@ def get_policy_use(uuid: str = typer.Argument(..., help="The UUID of the policy 
         console.print([item.to_dict() for item in used_by])
     except ApiException as e:
         console.print(f"[bold red]Error getting policy usage: {e.body}[/bold red]")
+
+
+@policy_app.command("bind-to-app")
+def bind_policy_to_app(
+    policy_uuid: str = typer.Argument(..., help="The UUID of the policy to bind."),
+    app_uuid: str = typer.Argument(..., help="The UUID of the application to bind to."),
+    order: int = typer.Argument(..., help="The order of the policy binding."),
+):
+    """Bind a policy to an application."""
+    client = get_client()
+    policies_api = api.PoliciesApi(client)
+    try:
+        binding_request = PolicyBindingRequest(
+            policy=policy_uuid,
+            target=app_uuid,
+            order=order,
+        )
+        policies_api.policies_bindings_create(policy_binding_request=binding_request)
+        console.print(
+            f"[bold green]Policy '{policy_uuid}' bound to application '{app_uuid}' successfully.[/bold green]"
+        )
+    except ApiException as e:
+        console.print(f"[bold red]Error binding policy: {e.body}[/bold red]")
+
 
 app.add_typer(policy_app, name="policy")

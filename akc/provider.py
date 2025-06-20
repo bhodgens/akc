@@ -6,11 +6,47 @@ from rich.table import Table
 
 from authentik_client import api
 from authentik_client.exceptions import ApiException
+from authentik_client.models import OAuth2ProviderRequest
 
 from .main import get_client, app
 
 provider_app = typer.Typer()
 console = Console()
+
+
+@provider_app.command("create-oauth2")
+def create_oauth2_provider(
+    name: str = typer.Argument(..., help="The name of the provider."),
+    authorization_flow_slug: str = typer.Argument(..., help="The slug of the authorization flow."),
+    client_type: str = typer.Option("confidential", help="Client type ('confidential' or 'public')."),
+    redirect_uris: str = typer.Option("", help="Redirect URIs (comma-separated)."),
+):
+    """Create a new OAuth2 provider."""
+    client = get_client()
+    providers_api = api.ProvidersApi(client)
+    flows_api = api.FlowsApi(client)
+    try:
+        # Find the authorization flow by slug to get its UUID
+        flows = flows_api.flows_instances_list(slug=authorization_flow_slug)
+        if not flows.results:
+            console.print(f"[bold red]Authorization flow with slug '{authorization_flow_slug}' not found.[/bold red]")
+            raise typer.Exit(1)
+        authorization_flow_uuid = flows.results[0].pk
+
+        provider_request = OAuth2ProviderRequest(
+            name=name,
+            authorization_flow=authorization_flow_uuid,
+            client_type=client_type,
+            redirect_uris=redirect_uris,
+        )
+        new_provider = providers_api.providers_oauth2_create(oauth2_provider_request=provider_request)
+        console.print(f"[bold green]OAuth2 provider '{new_provider.name}' created successfully with ID {new_provider.pk}.[/bold green]")
+        console.print(f"Client ID: {new_provider.client_id}")
+        if new_provider.client_secret:
+             console.print(f"Client Secret: {new_provider.client_secret}")
+
+    except ApiException as e:
+        console.print(f"[bold red]Error creating OAuth2 provider: {e.body}[/bold red]")
 
 
 @provider_app.command("list")

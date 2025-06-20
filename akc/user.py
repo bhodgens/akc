@@ -4,7 +4,7 @@ from rich.table import Table
 import json
 from authentik_client import api
 from authentik_client.exceptions import ApiException
-from authentik_client.models import User, PatchedUserRequest, UserRequest, Role, Group
+from authentik_client.models import User, PatchedUserRequest, UserRequest, Role, Group, PasswordRequest
 from .main import get_client, app
 
 user_app = typer.Typer()
@@ -132,6 +132,23 @@ def delete_user(user_id: int = typer.Argument(..., help="The ID of the user to d
         console.print(f"[bold green]User with ID {user_id} deleted successfully.[/bold green]")
     except ApiException as e:
         console.print(f"[bold red]Error deleting user: {e.body}[/bold red]")
+
+@user_app.command("set-password")
+def set_password(
+    user_id: int = typer.Argument(..., help="The ID of the user."),
+    password: str = typer.Argument(..., help="The new password."),
+):
+    """
+    Set a user's password.
+    """
+    client = get_client()
+    core_api = api.CoreApi(client)
+    try:
+        password_request = PasswordRequest(password=password)
+        core_api.core_users_set_password_create(user_pk=user_id, password_request=password_request)
+        console.print(f"[bold green]Password for user with ID {user_id} set successfully.[/bold green]")
+    except ApiException as e:
+        console.print(f"[bold red]Error setting password: {e.body}[/bold red]")
 
 @user_app.command("list-roles")
 def list_user_roles(
